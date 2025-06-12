@@ -8,9 +8,15 @@ st.caption("Powered by OpenRouter + Mistral 7B")
 # Sidebar config
 with st.sidebar:
     st.header("🔐 Settings")
-    api_key = st.secrets.get("api_key", st.text_input("OpenRouter API Key", type="password"))
-    model = "mistral/mistral-7b-instruct"
+    if "api_key" in st.secrets:
+        api_key = st.secrets["api_key"]
+        st.success("✅ API Key loaded from st.secrets.")
+    else:
+        api_key = st.text_input("OpenRouter API Key", type="password")
+        st.warning("⚠️ You can also store this in Streamlit secrets to avoid entering every time.")
+    model = "mistralai/mistral-7b-instruct:free"
     st.markdown("[Get your API key here](https://openrouter.ai/)")
+
 
 # User inputs
 topic = st.text_input("📌 Blog topic")
@@ -19,7 +25,7 @@ tone = st.selectbox("🎙️ Tone", ["Professional", "Casual", "Witty", "Formal"
 word_count = st.slider("✍️ Word Count", 100, 1000, 500, step=100)
 seo_keywords = st.text_input("🔎 SEO Keywords (comma-separated)", placeholder="e.g., bedroom furniture, sleep health")
 
-# Prompt generator
+# Prompt builder
 def build_prompt(topic, tone, word_count, content_type, seo_keywords):
     base = f"Write a {word_count}-word {content_type.lower()} on the topic: '{topic}'.\n"
     tone_line = f"Use a {tone.lower()} tone.\n"
@@ -27,7 +33,7 @@ def build_prompt(topic, tone, word_count, content_type, seo_keywords):
     style_line = "Make it engaging and structured with headings or bullet points where suitable.\n"
     return base + tone_line + seo_line + style_line
 
-# Generate content
+# Content generation
 def generate_content(prompt, api_key):
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -44,8 +50,8 @@ def generate_content(prompt, api_key):
         res = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
         res.raise_for_status()
         return res.json()['choices'][0]['message']['content']
-    except Exception as e:
-        return f"❌ Error: {str(e)}"
+    except requests.exceptions.RequestException as e:
+        return f"❌ Error: {e}\n\n📌 Check your API key and model name. Also verify that your key is active at https://openrouter.ai/."
 
 # UI interaction
 if st.button("✏️ Generate Content"):
