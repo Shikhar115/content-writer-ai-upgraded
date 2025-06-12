@@ -1,9 +1,23 @@
 import streamlit as st
 import requests
+from bs4 import BeautifulSoup
+
 
 st.set_page_config(page_title="AI Content Writer", layout="centered")
 st.title("📝 AI Content Writer (with SEO!)")
 st.caption("Powered by OpenRouter + Mistral 7B")
+
+#link_context
+def extract_text_from_url(url):
+    try:
+        res = requests.get(url, timeout=5)
+        soup = BeautifulSoup(res.text, "html.parser")
+        paragraphs = soup.find_all("p")
+        text = " ".join(p.get_text() for p in paragraphs)
+        return text[:1000]  # Limit to first 1000 chars to keep token usage low
+    except Exception as e:
+        return f"[Could not extract text from {url}]"
+
 
 # Sidebar config
 with st.sidebar:
@@ -24,14 +38,25 @@ content_type = st.selectbox("🗂️ Content Type", ["Blog", "LinkedIn Post", "T
 tone = st.selectbox("🎙️ Tone", ["Professional", "Casual", "Witty", "Formal", "Friendly"])
 word_count = st.slider("✍️ Word Count", 100, 1000, 500, step=100)
 seo_keywords = st.text_input("🔎 SEO Keywords (comma-separated)", placeholder="e.g., bedroom furniture, sleep health")
+ref_links = st.text_area("🌐 Reference URLs (optional, comma-separated)", placeholder="https://example.com/article1, https://example.com/blog2")
+
 
 # Prompt builder
-def build_prompt(topic, tone, word_count, content_type, seo_keywords):
+def build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links):
     base = f"Write a {word_count}-word {content_type.lower()} on the topic: '{topic}'.\n"
     tone_line = f"Use a {tone.lower()} tone.\n"
     seo_line = f"Include these SEO keywords naturally: {seo_keywords}.\n" if seo_keywords else ""
     style_line = "Make it engaging and structured with headings or bullet points where suitable.\n"
-    return base + tone_line + seo_line + style_line
+    
+    context = ""
+    if ref_links:
+        urls = [u.strip() for u in ref_links.split(",") if u.strip()]
+        st.info("⏳ Extracting content from reference links...")
+        ref_texts = [extract_text_from_url(u) for u in urls]
+        context = "\nHere are some reference ideas and info from provided links:\n" + "\n".join(ref_texts) + "\n"
+    
+    return context + base + tone_line + seo_line + style_line
+
 
 # Content generation
 def generate_content(prompt, api_key):
@@ -59,7 +84,7 @@ if st.button("✏️ Generate Content"):
         st.warning("Please provide a topic and your API key.")
     else:
         with st.spinner("Creating SEO-optimized content..."):
-            prompt = build_prompt(topic, tone, word_count, content_type, seo_keywords)
+            prompt = build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links)
             output = generate_content(prompt, api_key)
             st.markdown("### 🧾 Generated Content")
             st.write(output)
