@@ -50,16 +50,24 @@ def build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links,
     tone_line = f"Use a {tone.lower()} tone.\n"
     seo_line = f"Include these SEO keywords naturally: {seo_keywords}.\n" if seo_keywords else ""
     style_line = "Make it engaging and structured with headings or bullet points where suitable.\n"
-    
+
+    # ✅ Safe context from ref_links
     context = ""
-    if ref_links:
+    if ref_links and ref_links.strip():
         urls = [u.strip() for u in ref_links.split(",") if u.strip()]
-        st.info("⏳ Extracting content from reference links...")
-        ref_texts = [extract_text_from_url(u) for u in urls]
-        context = "\nHere are some reference ideas and info from provided links:\n" + "\n".join(ref_texts) + "\n"
-        goal_line = f"\nThe goal of this content is: {goal_summary.strip()}.\n" if goal_summary else ""
+        if urls:
+            st.info("⏳ Extracting content from reference links...")
+            ref_texts = [extract_text_from_url(u) for u in urls]
+            context = "\nHere are some reference ideas and info from provided links:\n" + "\n".join(ref_texts) + "\n"
+
+    # ✅ Safe goal line
+    goal_line = ""
+    if goal_summary and goal_summary.strip():
+        goal_line = f"\nThe goal of this content is: {goal_summary.strip()}.\n"
 
     return context + base + tone_line + seo_line + goal_line + style_line
+
+
 
 
 
