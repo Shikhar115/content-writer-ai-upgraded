@@ -39,10 +39,13 @@ tone = st.selectbox("🎙️ Tone", ["Professional", "Casual", "Witty", "Formal"
 word_count = st.slider("✍️ Word Count", 100, 1000, 500, step=100)
 seo_keywords = st.text_input("🔎 SEO Keywords (comma-separated)", placeholder="e.g., bedroom furniture, sleep health")
 ref_links = st.text_area("🌐 Reference URLs (optional, comma-separated)", placeholder="https://example.com/article1, https://example.com/blog2")
+goal_summary = st.text_area("🎯 What is this content trying to achieve? (optional)", 
+                            placeholder="e.g., Educate readers about bedroom design trends while boosting SEO for 'bedroom furniture'")
+
 
 
 # Prompt builder
-def build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links):
+def build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links, goal_summary):
     base = f"Write a {word_count}-word {content_type.lower()} on the topic: '{topic}'.\n"
     tone_line = f"Use a {tone.lower()} tone.\n"
     seo_line = f"Include these SEO keywords naturally: {seo_keywords}.\n" if seo_keywords else ""
@@ -54,8 +57,10 @@ def build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links)
         st.info("⏳ Extracting content from reference links...")
         ref_texts = [extract_text_from_url(u) for u in urls]
         context = "\nHere are some reference ideas and info from provided links:\n" + "\n".join(ref_texts) + "\n"
-    
-    return context + base + tone_line + seo_line + style_line
+        goal_line = f"\nThe goal of this content is: {goal_summary.strip()}.\n" if goal_summary else ""
+
+    return context + base + tone_line + seo_line + goal_line + style_line
+
 
 
 # Content generation
@@ -84,7 +89,7 @@ if st.button("✏️ Generate Content"):
         st.warning("Please provide a topic and your API key.")
     else:
         with st.spinner("Creating SEO-optimized content..."):
-            prompt = build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links)
+            prompt = build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links, goal_summary)
             output = generate_content(prompt, api_key)
             st.markdown("### 🧾 Generated Content")
             st.write(output)
