@@ -66,7 +66,7 @@ def build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links,
     return context + base + tone_line + seo_line + goal_line + style_line
 
 # Chat function using OpenRouter API
-def chat_with_model(messages, model="mistral", api_key=""):
+def chat_with_model(messages, model="openchat", api_key=""):
     headers = {
         "Authorization": f"Bearer {api_key}",
         "HTTP-Referer": "https://your-app-name.streamlit.app",
@@ -88,7 +88,8 @@ if st.button("🚀 Generate Content"):
     with st.spinner("Generating your content..."):
         try:
             api_key = st.secrets["OPENROUTER_API_KEY"]
-            model = "mistralai/mistral-7b-instruct"  # Or replace with your preferred model
+            model = "openchat/openchat-3.5"  # or use llama-3 if performance allows
+             # Or replace with your preferred model
 
             # 1st generation step
             prompt = build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links, goal_summary)
