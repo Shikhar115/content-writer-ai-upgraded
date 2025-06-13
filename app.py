@@ -39,7 +39,7 @@ def build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links,
     base = f"Write a {word_count}-word {content_type.lower()} on the topic: '{topic}'.\n"
     tone_line = f"Use a {tone.lower()} tone.\n"
     seo_line = f"Include these SEO keywords naturally: {seo_keywords}.\n" if seo_keywords else ""
-    style_line += (
+    style_line = (
     "Before starting the content, add a short personal anecdote or opinion to make it feel personal. "
     "Also add a summary or closing remark at the end that uses an idiom or common expression."
       
