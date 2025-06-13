@@ -39,8 +39,17 @@ def build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links,
     base = f"Write a {word_count}-word {content_type.lower()} on the topic: '{topic}'.\n"
     tone_line = f"Use a {tone.lower()} tone.\n"
     seo_line = f"Include these SEO keywords naturally: {seo_keywords}.\n" if seo_keywords else ""
-    style_line = "Make it engaging and structured with headings or bullet points where suitable.\n"
-    style_line += "Make the writing feel natural and human-like, avoiding robotic or overly formal tone.\n"
+    style_line += (
+    "Before starting the content, add a short personal anecdote or opinion to make it feel personal. "
+    "Also add a summary or closing remark at the end that uses an idiom or common expression."
+      
+    "Write like a human, not a robot. Use contractions (don't, can't), rhetorical questions, emotional phrases, idioms, casual slang, and some personal voice. "
+    "Avoid perfect grammar — make it feel natural, like a blogger or storyteller wrote it.\n"
+                  )
+    
+    
+
+
 
     context = ""
     if ref_links and ref_links.strip():
@@ -64,13 +73,15 @@ def chat_with_model(messages, model="mistral", api_key=""):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": model,
-        "messages": messages,
-        "temperature": 0.7
-    }
+    "model": model,
+    "messages": messages,
+    "temperature": 1.0  # increase from 0.7 to 1.0 for more variation
+            }
+
     response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
     response.raise_for_status()
     return response.json()
+   
 
 # Generate content
 if st.button("🚀 Generate Content"):
@@ -92,9 +103,16 @@ if st.button("🚀 Generate Content"):
             if humanize:
                 st.info("✨ Humanizing the content...")
                 humanizer_prompt = [
-                    {"role": "system", "content": "You are a content editor that rewrites AI-generated text to make it sound more human, natural, and engaging."},
-                    {"role": "user", "content": f"Revise the following text to make it sound like it was written by a human:\n\n{content}"}
-                ]
+                                     {
+                                       "role": "system",
+                                          "content": "You are a skilled editor. Rewrite AI-generated content to sound like it was written by a real person — casual, with personality, slang, varied sentence lengths, rhetorical questions, light sarcasm, and minor imperfections."
+                                     },
+                                    {
+                                             "role": "user",
+                                               "content": f"Make this sound human-written (add casual tone, unpredictability, idioms, emotional cues):\n\n{content}"
+                                      }
+                                   ]
+
                 result = chat_with_model(humanizer_prompt, model=model, api_key=api_key)
                 content = result["choices"][0]["message"]["content"]
 
