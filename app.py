@@ -50,7 +50,7 @@ def build_prompt(topic, tone, word_count, content_type, seo_keywords, ref_links,
     return context + base + tone_line + seo_line + goal_line + style_line
 
 # Call OpenRouter API
-def chat_with_model(messages, model="openchat/openchat-3.5", api_key=""):
+def chat_with_model(messages, model="openchat/openchat-3.5", api_key="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"):
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
